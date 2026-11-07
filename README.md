@@ -66,7 +66,9 @@ Note: Homebrew's gRPC must match its protobuf and abseil versions (`brew upgrade
 
 ## Demo
 
-<!-- DEMO -->
+![Demo](docs/demo.gif)
+
+*`make demo`: commands stall, the watchdog goes HOLD then STOP, and the link restoring returns it to RUN.*
 
 ## Results
 
