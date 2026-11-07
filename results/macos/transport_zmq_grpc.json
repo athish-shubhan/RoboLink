@@ -1,0 +1,166 @@
+{
+  "command": "bench/run_bench.py transport --bin build/rl_bench --transports zmq grpc --out results/macos/transport_zmq_grpc.json",
+  "machine": {
+    "cpu": "Apple M1",
+    "logical_cpus": 8,
+    "ram_gb": 8.0,
+    "os": "macOS ",
+    "kernel": "25.2.0",
+    "arch": "arm64",
+    "environment": "macos-native",
+    "python": "3.15.2",
+    "loadavg_start": [
+      7.10791015625,
+      14.58642578125,
+      22.4365234375
+    ],
+    "loadavg_end": [
+      5.1796875,
+      12.45947265625,
+      21.0517578125
+    ]
+  },
+  "note": "",
+  "params": {
+    "latency_rate_hz": 1000,
+    "latency_samples": 5000,
+    "warmup": 200,
+    "payload_bytes": 64,
+    "throughput_seconds": 3,
+    "runs": 3
+  },
+  "cases": {
+    "zmq_cpp": {
+      "latency": [
+        {
+          "n": 5000,
+          "p50_us": 156.0,
+          "p95_us": 216.0,
+          "p99_us": 345.0,
+          "max_us": 2248.0,
+          "mean_us": 164.3738,
+          "stddev_us": 75.40231610209331,
+          "jitter_us": 36.3502700540108,
+          "cpu_pct_of_one_core": 9.54710702730605,
+          "received": 5200,
+          "sent": 5200
+        },
+        {
+          "n": 5000,
+          "p50_us": 154.0,
+          "p95_us": 197.0,
+          "p99_us": 279.0,
+          "max_us": 1217.0,
+          "mean_us": 159.5036,
+          "stddev_us": 49.3026975635208,
+          "jitter_us": 30.664932986597318,
+          "cpu_pct_of_one_core": 9.1033471273617,
+          "received": 5200,
+          "sent": 5200
+        },
+        {
+          "n": 5000,
+          "p50_us": 154.0,
+          "p95_us": 199.0,
+          "p99_us": 280.0,
+          "max_us": 1830.0,
+          "mean_us": 160.0606,
+          "stddev_us": 58.494992329600315,
+          "jitter_us": 30.68233646729346,
+          "cpu_pct_of_one_core": 9.09373100800837,
+          "received": 5200,
+          "sent": 5200
+        }
+      ],
+      "throughput": [
+        {
+          "sent": 5671716,
+          "received": 5671716,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 1849196.5111289923,
+          "cpu_pct_of_one_core": 202.40443490383828
+        },
+        {
+          "sent": 5704689,
+          "received": 5704689,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 1861146.626899134,
+          "cpu_pct_of_one_core": 203.3987929453302
+        },
+        {
+          "sent": 5600034,
+          "received": 5600034,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 1822184.1807361778,
+          "cpu_pct_of_one_core": 208.90932181632945
+        }
+      ]
+    },
+    "grpc_cpp": {
+      "latency": [
+        {
+          "n": 5000,
+          "p50_us": 331.0,
+          "p95_us": 610.0,
+          "p99_us": 1311.0,
+          "max_us": 8957.0,
+          "mean_us": 374.5796,
+          "stddev_us": 298.5915190755424,
+          "jitter_us": 77.76735347069413,
+          "cpu_pct_of_one_core": 46.44325448729303,
+          "received": 5200,
+          "sent": 5200
+        },
+        {
+          "n": 5000,
+          "p50_us": 296.0,
+          "p95_us": 504.0,
+          "p99_us": 1098.0,
+          "max_us": 7850.0,
+          "mean_us": 332.2166,
+          "stddev_us": 266.5033877541522,
+          "jitter_us": 59.89017803560712,
+          "cpu_pct_of_one_core": 39.709479884147335,
+          "received": 5200,
+          "sent": 5200
+        },
+        {
+          "n": 5000,
+          "p50_us": 221.0,
+          "p95_us": 364.0,
+          "p99_us": 510.0,
+          "max_us": 2506.0,
+          "mean_us": 244.4424,
+          "stddev_us": 87.41413090707933,
+          "jitter_us": 29.860772154430887,
+          "cpu_pct_of_one_core": 28.855219489756553,
+          "received": 5200,
+          "sent": 5200
+        }
+      ],
+      "throughput": [
+        {
+          "sent": 263704,
+          "received": 263704,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 87903.8422242319,
+          "cpu_pct_of_one_core": 281.7027083875712
+        },
+        {
+          "sent": 245275,
+          "received": 245275,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 81762.38791481809,
+          "cpu_pct_of_one_core": 271.1440180623027
+        },
+        {
+          "sent": 267368,
+          "received": 267368,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 89125.57156243344,
+          "cpu_pct_of_one_core": 282.79897502942606
+        }
+      ]
+    }
+  }
+}
