@@ -1,0 +1,71 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ libzmq3-dev cppzmq-dev \
+            libprotobuf-dev protobuf-compiler libgrpc++-dev protobuf-compiler-grpc \
+            libgtest-dev python3-zmq python3-protobuf
+      - name: Build (-Wall -Wextra -Werror)
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build build
+      - name: Unit tests
+        run: ctest --test-dir build --output-on-failure
+      - name: Demo smoke (non-TTY output)
+        run: timeout 60 build/rl_demo | tail -5
+      - name: Benchmark smoke (ZeroMQ + gRPC)
+        run: |
+          python3 bench/run_bench.py transport --bin build/rl_bench --transports zmq grpc \
+            --count 500 --warmup 50 --duration 1 --runs 1 --out /tmp/smoke/transport.json
+          python3 -c "import json;d=json.load(open('/tmp/smoke/transport.json'));[print(k,v['latency'][0]) for k,v in d['cases'].items()]"
+      - name: Control-loop smoke (C++ and Python)
+        run: |
+          ROBOLINK_GEN_PY=build/gen/python python3 bench/run_bench.py control --build build \
+            --python python3 --cycles 200 --runs 1 --out /tmp/smoke/control.json
+
+  sanitizers:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        san: [address, thread]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ libprotobuf-dev protobuf-compiler libgtest-dev
+      - name: Build and test with ${{ matrix.san }} sanitizer
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DROBOLINK_SANITIZE=${{ matrix.san }} -DROBOLINK_BUILD_BENCH=OFF
+          cmake --build build
+          ctest --test-dir build --output-on-failure
+
+  ros2:
+    runs-on: ubuntu-24.04
+    container: ros:jazzy-ros-base
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ROS 2 packages
+        shell: bash
+        run: |
+          apt-get update && apt-get install -y --no-install-recommends ros-jazzy-rosidl-default-generators
+          source /opt/ros/jazzy/setup.bash
+          mkdir -p ws/src && cp -r ros2/robolink_msgs ros2/robolink_bench ws/src/
+          cd ws && colcon build
+      - name: Smoke run (rclcpp and rclpy echo)
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash && source ws/install/setup.bash
+          B=ws/install/robolink_bench/lib/robolink_bench
+          python3 bench/run_bench.py transport --bin /bin/true --transports \
+            --ros2-cpp "$B/bench_cpp" --ros2-py "python3 $B/bench_py.py" \
+            --count 300 --warmup 30 --duration 1 --runs 1 --ready 3 --out /tmp/smoke/ros2.json
+          python3 -c "import json;d=json.load(open('/tmp/smoke/ros2.json'));[print(k,v) for k,v in d['cases'].items()]"

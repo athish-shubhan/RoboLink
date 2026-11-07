@@ -55,7 +55,7 @@ def machine_info():
     if sysname == "Darwin":
         cpu = _sh("sysctl -n machdep.cpu.brand_string")
         ram = int(_sh("sysctl -n hw.memsize") or 0)
-        osname = "macOS " + platform.mac_ver()[0]
+        osname = "macOS " + (platform.mac_ver()[0] or _sh("sw_vers -productVersion"))
     else:
         cpu = _sh("grep -m1 'model name' /proc/cpuinfo | cut -d: -f2") or _sh("lscpu | grep -m1 'Model name' | cut -d: -f2") or platform.processor()
         meminfo = _sh("grep MemTotal /proc/meminfo")
@@ -78,7 +78,7 @@ def last_json(text):
     raise RuntimeError("no JSON in output: " + text[-500:])
 
 
-def run_pair(prefix, role_args_server, role_args_client, env=None, ready_s=1.0, timeout=120):
+def run_pair(prefix, role_args_server, role_args_client, env=None, ready_s=1.0, timeout=400, server_wait=400):
     srv = subprocess.Popen(prefix + role_args_server, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                            text=True, env=env)
     time.sleep(ready_s)
@@ -87,7 +87,7 @@ def run_pair(prefix, role_args_server, role_args_client, env=None, ready_s=1.0, 
         srv.kill()
         raise RuntimeError("client failed: " + cli.stderr[-800:])
     try:
-        sout, serr = srv.communicate(timeout=20)
+        sout, serr = srv.communicate(timeout=server_wait)
     except subprocess.TimeoutExpired:
         srv.kill()
         sout, serr = srv.communicate()
@@ -140,7 +140,7 @@ def cmd_transport(a):
                 entry["latency"].append(st)
                 raw += [[name, run, i, v] for i, v in enumerate(c["rtt_ns"])]
             except Exception as e:  # keep going: report as not measured
-                entry["latency"].append({"error": str(e)[:300]})
+                entry["latency"].append({"error": str(e)[-600:]})
             port += 1
             common = ["--port", str(port), "--payload", str(a.payload)]
             thr_args = ["--mode", "throughput", "--duration", str(a.duration)]
@@ -154,7 +154,7 @@ def cmd_transport(a):
                     "msgs_per_s": (s["received"] - 1) / span if span > 0 else None,
                     "cpu_pct_of_one_core": 100.0 * (c["cpu_s"] + s["cpu_s"]) / max(span, 1e-9)})
             except Exception as e:
-                entry["throughput"].append({"error": str(e)[:300]})
+                entry["throughput"].append({"error": str(e)[-600:]})
         doc["cases"][name] = entry
         print(name, json.dumps(entry["latency"][0] if entry["latency"] else {})[:200])
     write_results(a.out, doc, raw, ["case", "run", "i", "rtt_ns"])

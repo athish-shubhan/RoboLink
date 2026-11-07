@@ -1,0 +1,290 @@
+{
+  "command": "bench/run_bench.py transport --bin /tmp/build/rl_bench --transports zmq grpc --ros2-cpp /tmp/ros_ws/install/robolink_bench/lib/robolink_bench/bench_cpp --ros2-py python3 /tmp/ros_ws/install/robolink_bench/lib/robolink_bench/bench_py.py --ready 3 --note docker/Linux on Colima VM; loopback --out results/docker/transport_all.json",
+  "machine": {
+    "cpu": "-",
+    "logical_cpus": 2,
+    "ram_gb": 2.8,
+    "os": "Ubuntu 24.04.5 LTS",
+    "kernel": "6.8.0-117-generic",
+    "arch": "aarch64",
+    "environment": "docker-linux (Colima VM)",
+    "python": "3.12.3",
+    "loadavg_start": [
+      1.5634765625,
+      0.740234375,
+      0.5087890625
+    ],
+    "loadavg_end": [
+      1.353515625,
+      0.8935546875,
+      0.6103515625
+    ]
+  },
+  "note": "docker/Linux on Colima VM; loopback",
+  "params": {
+    "latency_rate_hz": 1000,
+    "latency_samples": 5000,
+    "warmup": 200,
+    "payload_bytes": 64,
+    "throughput_seconds": 3,
+    "runs": 3
+  },
+  "cases": {
+    "zmq_cpp": {
+      "latency": [
+        {
+          "n": 5000,
+          "p50_us": 367.558,
+          "p95_us": 895.867,
+          "p99_us": 2504.462,
+          "max_us": 53985.202,
+          "mean_us": 466.5967188,
+          "stddev_us": 918.925331147318,
+          "jitter_us": 211.34009641928387,
+          "cpu_pct_of_one_core": 37.3671179470295,
+          "received": 5200,
+          "sent": 5200
+        },
+        {
+          "n": 5000,
+          "p50_us": 222.233,
+          "p95_us": 450.369,
+          "p99_us": 1001.652,
+          "max_us": 12310.649,
+          "mean_us": 280.09529100000003,
+          "stddev_us": 456.8221680368123,
+          "jitter_us": 88.08006621324265,
+          "cpu_pct_of_one_core": 19.92200286248495,
+          "received": 5200,
+          "sent": 5200
+        },
+        {
+          "n": 5000,
+          "p50_us": 385.425,
+          "p95_us": 1739.161,
+          "p99_us": 7091.105,
+          "max_us": 73951.415,
+          "mean_us": 730.6626487999999,
+          "stddev_us": 2278.4287410073975,
+          "jitter_us": 504.97626345269055,
+          "cpu_pct_of_one_core": 45.548916797826365,
+          "received": 5200,
+          "sent": 5200
+        }
+      ],
+      "throughput": [
+        {
+          "sent": 2408275,
+          "received": 2408275,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 802476.2955113185,
+          "cpu_pct_of_one_core": 193.00567984745697
+        },
+        {
+          "sent": 1816575,
+          "received": 1816575,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 605461.6348813468,
+          "cpu_pct_of_one_core": 181.99661984789185
+        },
+        {
+          "sent": 1481820,
+          "received": 1481820,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 488984.481463689,
+          "cpu_pct_of_one_core": 182.86412360637402
+        }
+      ]
+    },
+    "grpc_cpp": {
+      "latency": [
+        {
+          "n": 5000,
+          "p50_us": 212.766,
+          "p95_us": 919.221,
+          "p99_us": 3747.703,
+          "max_us": 47428.568,
+          "mean_us": 414.4215004,
+          "stddev_us": 1337.383438662832,
+          "jitter_us": 255.96846369273857,
+          "cpu_pct_of_one_core": 41.09806571500972,
+          "received": 5200,
+          "sent": 5200
+        },
+        {
+          "n": 5000,
+          "p50_us": 283.303,
+          "p95_us": 919.132,
+          "p99_us": 2517.849,
+          "max_us": 29766.807,
+          "mean_us": 423.50943779999994,
+          "stddev_us": 902.2175257123757,
+          "jitter_us": 236.04376175235046,
+          "cpu_pct_of_one_core": 44.42671501917873,
+          "received": 5200,
+          "sent": 5200
+        },
+        {
+          "n": 5000,
+          "p50_us": 327.553,
+          "p95_us": 759.634,
+          "p99_us": 1609.176,
+          "max_us": 10132.778,
+          "mean_us": 385.8201626,
+          "stddev_us": 398.86713725575106,
+          "jitter_us": 153.64968833766753,
+          "cpu_pct_of_one_core": 43.852877928574394,
+          "received": 5200,
+          "sent": 5200
+        }
+      ],
+      "throughput": [
+        {
+          "sent": 124228,
+          "received": 124228,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 41414.2456249841,
+          "cpu_pct_of_one_core": 157.42497314775719
+        },
+        {
+          "sent": 140349,
+          "received": 140349,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 46786.823551174326,
+          "cpu_pct_of_one_core": 148.5664997373243
+        },
+        {
+          "sent": 215271,
+          "received": 215271,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 71860.14676311525,
+          "cpu_pct_of_one_core": 148.53222280383682
+        }
+      ]
+    },
+    "ros2_cpp": {
+      "latency": [
+        {
+          "n": 5000,
+          "p50_us": 312.994,
+          "p95_us": 768.788,
+          "p99_us": 1955.317,
+          "max_us": 10324.792,
+          "mean_us": 379.72027080000004,
+          "stddev_us": 450.22098588438797,
+          "jitter_us": 160.107650130026,
+          "cpu_pct_of_one_core": 44.44203857658611,
+          "received": 5200,
+          "sent": 5200
+        },
+        {
+          "n": 5000,
+          "p50_us": 280.365,
+          "p95_us": 750.833,
+          "p99_us": 1695.142,
+          "max_us": 10602.806,
+          "mean_us": 356.2463816,
+          "stddev_us": 413.32595290000216,
+          "jitter_us": 147.9060198039608,
+          "cpu_pct_of_one_core": 42.418156225383505,
+          "received": 5200,
+          "sent": 5200
+        },
+        {
+          "n": 5000,
+          "p50_us": 163.557,
+          "p95_us": 580.432,
+          "p99_us": 1431.475,
+          "max_us": 9664.034,
+          "mean_us": 259.9292538,
+          "stddev_us": 420.434644362714,
+          "jitter_us": 112.67380076015202,
+          "cpu_pct_of_one_core": 29.686102879954156,
+          "received": 5200,
+          "sent": 5200
+        }
+      ],
+      "throughput": [
+        {
+          "sent": 60140,
+          "received": 60140,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 12284.08851818796,
+          "cpu_pct_of_one_core": 126.59084223919692
+        },
+        {
+          "sent": 51874,
+          "received": 51874,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 15542.90386545685,
+          "cpu_pct_of_one_core": 128.78458281840008
+        },
+        {
+          "sent": 53581,
+          "received": 53581,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 12548.981843241432,
+          "cpu_pct_of_one_core": 133.69127367122934
+        }
+      ]
+    },
+    "ros2_py": {
+      "latency": [
+        {
+          "n": 5000,
+          "p50_us": 456.549,
+          "p95_us": 897.333,
+          "p99_us": 1879.823,
+          "max_us": 11365.896,
+          "mean_us": 530.2802803999999,
+          "stddev_us": 449.20746468783284,
+          "jitter_us": 118.41397719543907,
+          "cpu_pct_of_one_core": 110.73573341337094,
+          "received": 5200,
+          "sent": 5200
+        },
+        {
+          "n": 5000,
+          "p50_us": 548.627,
+          "p95_us": 1300.692,
+          "p99_us": 2681.029,
+          "max_us": 47852.908,
+          "mean_us": 680.6537308000001,
+          "stddev_us": 968.3857616869108,
+          "jitter_us": 203.26237067413484,
+          "cpu_pct_of_one_core": 130.26062592366483,
+          "received": 5200,
+          "sent": 5200
+        },
+        {
+          "n": 5000,
+          "p50_us": 455.914,
+          "p95_us": 1161.352,
+          "p99_us": 3771.621,
+          "max_us": 41906.204,
+          "mean_us": 608.0229956000001,
+          "stddev_us": 1309.6816902263072,
+          "jitter_us": 200.4177601520304,
+          "cpu_pct_of_one_core": 113.50088700922261,
+          "received": 5200,
+          "sent": 5200
+        }
+      ],
+      "throughput": [
+        {
+          "error": "b/robolink_bench/bench_py.py\", line 127, in <module>\n    main()\n  File \"/tmp/ros_ws/install/robolink_bench/lib/robolink_bench/bench_py.py\", line 122, in main\n    (server if a.role == \"server\" else client)(a)\n  File \"/tmp/ros_ws/install/robolink_bench/lib/robolink_bench/bench_py.py\", line 98, in client\n    pub.publish(make(sent, 0, payload))\n  File \"/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/publisher.py\", line 70, in publish\n    self.__publisher.publish(msg)\nrclpy._rclpy_pybind11.RCLError: Failed to publish: cannot publish data, at ./src/rmw_publish.cpp:66, at ./src/rcl/publisher.c:284\n"
+        },
+        {
+          "sent": 11740,
+          "received": 11740,
+          "delivered_ratio": 1.0,
+          "msgs_per_s": 419.95114793187844,
+          "cpu_pct_of_one_core": 121.01342478154233
+        },
+        {
+          "error": "b/robolink_bench/bench_py.py\", line 127, in <module>\n    main()\n  File \"/tmp/ros_ws/install/robolink_bench/lib/robolink_bench/bench_py.py\", line 122, in main\n    (server if a.role == \"server\" else client)(a)\n  File \"/tmp/ros_ws/install/robolink_bench/lib/robolink_bench/bench_py.py\", line 98, in client\n    pub.publish(make(sent, 0, payload))\n  File \"/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/publisher.py\", line 70, in publish\n    self.__publisher.publish(msg)\nrclpy._rclpy_pybind11.RCLError: Failed to publish: cannot publish data, at ./src/rmw_publish.cpp:66, at ./src/rcl/publisher.c:284\n"
+        }
+      ]
+    }
+  }
+}

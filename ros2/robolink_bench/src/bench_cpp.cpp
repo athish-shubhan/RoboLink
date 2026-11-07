@@ -59,7 +59,7 @@ static int server(const Args& a) {
   auto sub = node->create_subscription<Packet>("/rl/cmd", qos_for(a), [&](const Packet& m) {
     last = now_ns();
     if (m.kind == 2) {
-      if (a.mode == "latency") pub->publish(m);
+      pub->publish(m);  // end marker is echoed in both modes so the client knows the stream drained
       done = true;
       return;
     }
@@ -112,7 +112,9 @@ static int client(const Args& a) {
     const int64_t end = now_ns() + static_cast<int64_t>(a.duration * 1e9);
     while (now_ns() < end) { pub->publish(make(sent, 0, a.payload)); ++sent; }
     pub->publish(make(sent, 2, 0));
-    std::this_thread::sleep_for(1s);  // let reliable delivery drain
+    // keep the publisher alive until the subscriber has drained and echoed the end marker
+    const int64_t limit = now_ns() + 300'000'000'000LL;
+    while (got_seq != static_cast<int64_t>(sent) && now_ns() < limit) ex.spin_once(50ms);
   }
   std::printf("{\"role\":\"client\",\"transport\":\"ros2\",\"lang\":\"cpp\",\"mode\":\"%s\",\"sent\":%llu,"
               "\"received\":%llu,\"duration_s\":%.6f,\"cpu_s\":%.6f,\"rtt_ns\":[",

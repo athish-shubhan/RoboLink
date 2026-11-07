@@ -39,6 +39,7 @@ demo: build
 	$(BUILD)/rl_demo
 
 OS_TAG := $(if $(filter Darwin,$(shell uname -s)),macos,linux)
+RUNS ?= 5
 STRESS ?= $(shell getconf _NPROCESSORS_ONLN)
 bench-transport: build
 	python3 bench/run_bench.py transport --bin $(BUILD)/rl_bench --transports zmq grpc \
@@ -46,9 +47,9 @@ bench-transport: build
 
 bench-control: build venv
 	$(PY) bench/run_bench.py control --build $(BUILD) --python $(PY) \
-	  --out results/$(OS_TAG)/control_baseline.json
+	  --runs $(RUNS) --out results/$(OS_TAG)/control_baseline.json
 	$(PY) bench/run_bench.py control --build $(BUILD) --python $(PY) --stress-cpus $(STRESS) \
-	  --out results/$(OS_TAG)/control_cpu_stress.json
+	  --runs $(RUNS) --out results/$(OS_TAG)/control_cpu_stress.json
 
 bench: bench-transport bench-control
 

@@ -4,20 +4,20 @@
     "cpu": "Apple M1",
     "logical_cpus": 8,
     "ram_gb": 8.0,
-    "os": "macOS ",
+    "os": "macOS 26.2",
     "kernel": "25.2.0",
     "arch": "arm64",
     "environment": "macos-native",
     "python": "3.15.2",
     "loadavg_start": [
-      7.10791015625,
-      14.58642578125,
-      22.4365234375
+      3.47265625,
+      4.40966796875,
+      6.57470703125
     ],
     "loadavg_end": [
-      5.1796875,
-      12.45947265625,
-      21.0517578125
+      3.00634765625,
+      4.12939453125,
+      6.32177734375
     ]
   },
   "note": "",
@@ -34,65 +34,65 @@
       "latency": [
         {
           "n": 5000,
-          "p50_us": 156.0,
-          "p95_us": 216.0,
-          "p99_us": 345.0,
-          "max_us": 2248.0,
-          "mean_us": 164.3738,
-          "stddev_us": 75.40231610209331,
-          "jitter_us": 36.3502700540108,
-          "cpu_pct_of_one_core": 9.54710702730605,
+          "p50_us": 208.0,
+          "p95_us": 520.0,
+          "p99_us": 1627.0,
+          "max_us": 11342.0,
+          "mean_us": 279.1348,
+          "stddev_us": 392.6317498992663,
+          "jitter_us": 120.39667933586718,
+          "cpu_pct_of_one_core": 18.032401602001425,
           "received": 5200,
           "sent": 5200
         },
         {
           "n": 5000,
-          "p50_us": 154.0,
-          "p95_us": 197.0,
-          "p99_us": 279.0,
-          "max_us": 1217.0,
-          "mean_us": 159.5036,
-          "stddev_us": 49.3026975635208,
-          "jitter_us": 30.664932986597318,
-          "cpu_pct_of_one_core": 9.1033471273617,
+          "p50_us": 229.0,
+          "p95_us": 447.0,
+          "p99_us": 1132.0,
+          "max_us": 14817.0,
+          "mean_us": 277.092,
+          "stddev_us": 384.39122718397203,
+          "jitter_us": 98.91958391678335,
+          "cpu_pct_of_one_core": 19.976094452874534,
           "received": 5200,
           "sent": 5200
         },
         {
           "n": 5000,
-          "p50_us": 154.0,
-          "p95_us": 199.0,
-          "p99_us": 280.0,
-          "max_us": 1830.0,
-          "mean_us": 160.0606,
-          "stddev_us": 58.494992329600315,
-          "jitter_us": 30.68233646729346,
-          "cpu_pct_of_one_core": 9.09373100800837,
+          "p50_us": 277.0,
+          "p95_us": 441.0,
+          "p99_us": 943.0,
+          "max_us": 6293.0,
+          "mean_us": 294.3162,
+          "stddev_us": 241.10686223656097,
+          "jitter_us": 82.28925785157031,
+          "cpu_pct_of_one_core": 23.769638199983035,
           "received": 5200,
           "sent": 5200
         }
       ],
       "throughput": [
         {
-          "sent": 5671716,
-          "received": 5671716,
+          "sent": 6976352,
+          "received": 6976352,
           "delivered_ratio": 1.0,
-          "msgs_per_s": 1849196.5111289923,
-          "cpu_pct_of_one_core": 202.40443490383828
+          "msgs_per_s": 2284482.70498484,
+          "cpu_pct_of_one_core": 215.22176148462947
         },
         {
-          "sent": 5704689,
-          "received": 5704689,
+          "sent": 7300001,
+          "received": 7300001,
           "delivered_ratio": 1.0,
-          "msgs_per_s": 1861146.626899134,
-          "cpu_pct_of_one_core": 203.3987929453302
+          "msgs_per_s": 2373056.897127333,
+          "cpu_pct_of_one_core": 213.3876492465869
         },
         {
-          "sent": 5600034,
-          "received": 5600034,
+          "sent": 7092909,
+          "received": 7092909,
           "delivered_ratio": 1.0,
-          "msgs_per_s": 1822184.1807361778,
-          "cpu_pct_of_one_core": 208.90932181632945
+          "msgs_per_s": 2314822.5627797293,
+          "cpu_pct_of_one_core": 212.55777340749043
         }
       ]
     },
@@ -100,65 +100,65 @@
       "latency": [
         {
           "n": 5000,
-          "p50_us": 331.0,
-          "p95_us": 610.0,
-          "p99_us": 1311.0,
-          "max_us": 8957.0,
-          "mean_us": 374.5796,
-          "stddev_us": 298.5915190755424,
-          "jitter_us": 77.76735347069413,
-          "cpu_pct_of_one_core": 46.44325448729303,
+          "p50_us": 336.0,
+          "p95_us": 524.0,
+          "p99_us": 1011.0,
+          "max_us": 14845.0,
+          "mean_us": 378.2518,
+          "stddev_us": 451.8809307735391,
+          "jitter_us": 80.08941788357671,
+          "cpu_pct_of_one_core": 49.291540542364785,
           "received": 5200,
           "sent": 5200
         },
         {
           "n": 5000,
-          "p50_us": 296.0,
-          "p95_us": 504.0,
-          "p99_us": 1098.0,
-          "max_us": 7850.0,
-          "mean_us": 332.2166,
-          "stddev_us": 266.5033877541522,
-          "jitter_us": 59.89017803560712,
-          "cpu_pct_of_one_core": 39.709479884147335,
+          "p50_us": 340.0,
+          "p95_us": 544.0,
+          "p99_us": 922.0,
+          "max_us": 5706.0,
+          "mean_us": 372.0182,
+          "stddev_us": 179.230073003277,
+          "jitter_us": 53.11942388477696,
+          "cpu_pct_of_one_core": 49.46688392548798,
           "received": 5200,
           "sent": 5200
         },
         {
           "n": 5000,
-          "p50_us": 221.0,
-          "p95_us": 364.0,
-          "p99_us": 510.0,
-          "max_us": 2506.0,
-          "mean_us": 244.4424,
-          "stddev_us": 87.41413090707933,
-          "jitter_us": 29.860772154430887,
-          "cpu_pct_of_one_core": 28.855219489756553,
+          "p50_us": 271.0,
+          "p95_us": 490.0,
+          "p99_us": 841.0,
+          "max_us": 12644.0,
+          "mean_us": 318.4966,
+          "stddev_us": 251.7180851437576,
+          "jitter_us": 62.02440488097619,
+          "cpu_pct_of_one_core": 42.90101888982429,
           "received": 5200,
           "sent": 5200
         }
       ],
       "throughput": [
         {
-          "sent": 263704,
-          "received": 263704,
+          "sent": 311489,
+          "received": 311489,
           "delivered_ratio": 1.0,
-          "msgs_per_s": 87903.8422242319,
-          "cpu_pct_of_one_core": 281.7027083875712
+          "msgs_per_s": 103837.08650245884,
+          "cpu_pct_of_one_core": 303.8073176130484
         },
         {
-          "sent": 245275,
-          "received": 245275,
+          "sent": 143901,
+          "received": 143901,
           "delivered_ratio": 1.0,
-          "msgs_per_s": 81762.38791481809,
-          "cpu_pct_of_one_core": 271.1440180623027
+          "msgs_per_s": 47970.23245394575,
+          "cpu_pct_of_one_core": 227.40257025772246
         },
         {
-          "sent": 267368,
-          "received": 267368,
+          "sent": 146799,
+          "received": 146799,
           "delivered_ratio": 1.0,
-          "msgs_per_s": 89125.57156243344,
-          "cpu_pct_of_one_core": 282.79897502942606
+          "msgs_per_s": 48934.62405162873,
+          "cpu_pct_of_one_core": 181.15681293918425
         }
       ]
     }

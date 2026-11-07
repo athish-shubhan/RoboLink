@@ -38,8 +38,7 @@ def server(a):
     def cb(m):
         st["last"] = now_ns()
         if m.kind == 2:
-            if a.mode == "latency":
-                pub.publish(m)
+            pub.publish(m)  # end marker is echoed in both modes so the client knows the stream drained
             st["done"] = True
             return
         if st["n"] == 0:
@@ -99,7 +98,10 @@ def client(a):
             pub.publish(make(sent, 0, payload))
             sent += 1
         pub.publish(make(sent, 2, b""))
-        time.sleep(1)
+        # keep the publisher alive until the subscriber has drained and echoed the end marker
+        limit = now_ns() + 300_000_000_000
+        while got["seq"] != sent and now_ns() < limit:
+            rclpy.spin_once(node, timeout_sec=0.05)
     print(json.dumps({"role": "client", "transport": "ros2", "lang": "python", "mode": a.mode,
                       "sent": sent, "received": recv, "duration_s": (now_ns() - t0) / 1e9,
                       "cpu_s": time.process_time() - cpu0, "rtt_ns": rtt}, separators=(",", ":")), flush=True)

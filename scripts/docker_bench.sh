@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Linux/Docker benchmark run: ROS 2 (rclcpp + rclpy), ZeroMQ, gRPC transports,
 # then the Python-vs-C++ control loop under CPU stress and netem delay.
-# Needs a running Docker daemon (Colima). Results go to results/docker/.
+# Needs a running Docker daemon (Colima) that can mount the checkout (under $HOME for Colima).
+# Results go to results/docker/. ONLY=transport skips the control-loop runs.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 IMG=robolink-bench
 docker build -q -t $IMG -f docker/Dockerfile docker >/dev/null
-docker run --rm --cap-add NET_ADMIN -v "$PWD":/src -e ROBOLINK_ENV=docker $IMG bash -c '
+docker run --rm --cap-add NET_ADMIN -v "$PWD":/src -e ROBOLINK_ENV=docker -e ONLY="${ONLY:-}" $IMG bash -c '
 set -e
 cmake -S . -B /tmp/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DROBOLINK_BUILD_TESTS=OFF >/dev/null
 cmake --build /tmp/build >/dev/null
@@ -20,6 +21,7 @@ mkdir -p results/docker
 python3 bench/run_bench.py transport --bin /tmp/build/rl_bench --transports zmq grpc \
   --ros2-cpp "$B/bench_cpp" --ros2-py "python3 $B/bench_py.py" --ready 3 \
   --note "docker/Linux on Colima VM; loopback" --out results/docker/transport_all.json
+[ "${ONLY:-}" = transport ] && exit 0
 python3 bench/run_bench.py control --build /tmp/build --python python3 --out results/docker/control_baseline.json
 python3 bench/run_bench.py control --build /tmp/build --python python3 --stress-cpus 4 --out results/docker/control_cpu_stress.json
 python3 bench/run_bench.py control --build /tmp/build --python python3 --netem "delay 2ms 1ms" --out results/docker/control_netem.json
