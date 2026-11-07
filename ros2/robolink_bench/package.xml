@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>robolink_bench</name>
+  <version>0.1.0</version>
+  <description>ROS 2 (rclcpp and rclpy) endpoints for the RoboLink transport benchmark</description>
+  <maintainer email="athishshubhancs@gmail.com">athish-shubhan</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>rclpy</depend>
+  <depend>robolink_msgs</depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>
