@@ -1,0 +1,27 @@
+syntax = "proto3";
+package robolink.proto;
+
+// The single message schema shared by every transport (ZeroMQ, gRPC,
+// ROS 2 C++, ROS 2 Python). The ROS 2 message in ros2/robolink_msgs mirrors
+// these fields one-to-one.
+message Packet {
+  uint64 seq = 1;
+  // Sender timestamp, CLOCK_MONOTONIC nanoseconds on the sending host.
+  int64 stamp_ns = 2;
+  // 0 = command, 1 = sensor, 2 = end-of-stream marker.
+  uint32 kind = 3;
+  float linear = 4;
+  float angular = 5;
+  bytes payload = 6;
+}
+
+message StreamSummary {
+  uint64 received = 1;
+  int64 first_ns = 2;
+  int64 last_ns = 3;
+}
+
+service Link {
+  rpc Echo(Packet) returns (Packet);
+  rpc Stream(stream Packet) returns (StreamSummary);
+}
