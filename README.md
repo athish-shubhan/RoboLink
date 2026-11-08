@@ -15,7 +15,7 @@ A learned policy or remote planner is only useful if its commands reach the robo
 |---|---|---|
 | Timestamped packets (CLOCK_MONOTONIC ns), packet age | `include/robolink/packet.hpp` | tested |
 | Bounded MPMC queue: reject-when-full, drop-oldest, timed pop, close | `include/robolink/bounded_queue.hpp` | tested (incl. concurrent stress) |
-| Stale-command watchdog: RUN, HOLD (age >= 200 ms), STOP (age >= 1 s, latched until 3 fresh commands); rejects too-old and out-of-order commands | `src/watchdog.cpp` | tested |
+| Stale-command watchdog: RUN, HOLD (age >= 200 ms), STOP (age >= 1 s, latched until 3 fresh commands); rejects too-old, future-stamped (> 100 ms ahead) and out-of-order commands; age arithmetic saturates instead of overflowing | `src/watchdog.cpp` | tested |
 | Runtime: separate command and sensor pipeline threads, control tick, queue-timeout handling, output forced to zero outside RUN | `src/runtime.cpp` | tested |
 | One schema (`proto/robolink.proto`) over ZeroMQ and gRPC (C++), and a mirrored `.msg` for ROS 2 C++ and Python | `proto/`, `ros2/` | benchmarked |
 | Benchmark harness (p50/p95/p99, jitter, throughput, CPU; Python vs C++ control loop under CPU stress and netem) | `bench/` | see Results |
@@ -72,7 +72,7 @@ Note: Homebrew's gRPC must match its protobuf and abseil versions (`brew upgrade
 
 ## Results
 
-All numbers below were produced by the commands recorded in the linked `results/` files, on the machine named in each section. Do not compare numbers across the macOS and Docker sections: they are different kernels, different CPUs allocations, and the Docker numbers include a VM.
+All numbers below were produced by the commands recorded in the linked `results/` files, on the machine named in each section. Do not compare numbers across the macOS and Docker sections: they are different kernels, different CPU allocations, and the Docker numbers include a VM.
 
 <!-- RESULTS:BEGIN -->
 
@@ -138,10 +138,15 @@ Raw: `results/docker/control_*.json` (+ `.raw.csv`). 1000 cycles per run at 100 
 
 ### What the numbers do and do not show
 
+- **Definitions.** Jitter is the mean absolute difference between successive samples, not a standard deviation. Percentiles are nearest-rank. Timestamps are `CLOCK_MONOTONIC`, read in the sending process, so RTT needs no cross-host clock sync (everything is on one host).
+- **Coordinated omission affects the recorded transport latency numbers.** The clients are closed-loop (one request in flight, paced at 1 kHz) and the recorded RTT is measured from the moment the request is actually sent, not from its intended send time. When a reply takes longer than the 1 ms period, the following sends start late and that delay is not counted, so the recorded p95/p99 (and the macOS ZeroMQ p99 of 1,132 us, which is above the period) understate the tail a fixed-rate sender would see. In a 2,000-sample local check on the same loaded laptop (not recorded in `results/`), the ZeroMQ p99 was about 0.8 ms as recorded but about 9 ms measured from the intended send time; that figure also contains the sender's own timer wake-up lateness, so it bounds, rather than isolates, the transport's contribution. The C++ ZeroMQ/gRPC clients now also emit per-sample send lag, and `run_bench.py` reports a `from_schedule` summary (RTT + lag) next to the original one. The committed result files predate that and were not re-measured or altered, so they contain only the uncorrected numbers; ROS 2 and the Python controller still report the uncorrected form. The control-loop benchmark records wake-up lateness separately and counts deadline overruns, so it is less exposed.
+- **Throughput is not like-for-like.** ZeroMQ PUSH/PULL batches and has no per-message flow control or acknowledgement; gRPC client-streaming is HTTP/2 flow-controlled; the ROS 2 numbers are limited by `spin_once` per message on the subscriber. The ratios show what each stack's idiomatic configuration does here, not the protocol ceiling. Throughput runs have no separate warm-up.
+
 - **Run-to-run variance is large.** The macOS transport benchmark was run twice (the first run is kept in git history, commit "Record macOS-native benchmark results"): ZeroMQ p50 RTT was 154 us then 229 us, gRPC 296 us then 336 us, on a laptop that was also doing other work. The Docker transport benchmark was also run more than once (first run: ZeroMQ p50 226 us, gRPC 177 us, ROS 2 C++ 139 us) and the ordering of ZeroMQ, gRPC and ROS 2 C++ at the ~100-400 us level changed between runs. Treat the p50 differences between those three as within noise; the order-of-magnitude differences are not.
 - **Throughput differences are large and consistent across runs:** ZeroMQ PUSH/PULL (hundreds of thousands to ~2 M msg/s) >> gRPC client-streaming (~50k msg/s) >> ROS 2 C++ reliable topics (~12k msg/s) >> ROS 2 Python (~400 msg/s, subscriber-side, `spin_once` per message). ROS 2 Python also uses more than one core of CPU in the latency test (the client spin loop), roughly 2.5x the C++ clients.
 - **Python vs C++ control loop at 100 Hz:** no robust difference was found. Differences in p50 of tens of microseconds appear in some scenarios and reverse in others, and OS scheduling noise (wake-up lateness of milliseconds on macOS, VM jitter in Docker) is far larger than the interpreter overhead for a trivial controller. Under `tc netem delay 2ms 1ms` both loops are dominated by the injected delay. A stronger result would need a higher loop rate and a heavier control computation; that is not measured here.
-- **Unexplained:** in Docker, the netem-only scenario shows a higher loop RTT p50 (about 6.2 ms) than netem plus CPU stress (about 4.2 ms). One possible cause is idle vCPUs waking more slowly than busy ones; this was not investigated.
+- **Unexplained (macOS):** CPU stress did not raise loop RTT; p50 is lower with stress-ng running (cpp 269 us vs 417 us). A likely but untested cause is CPU frequency/scheduler behaviour (cores kept awake by load), which is also a caution against reading the macOS tail numbers as load sensitivity.
+- **Unexplained (Docker):** in Docker, the netem-only scenario shows a higher loop RTT p50 (about 6.2 ms) than netem plus CPU stress (about 4.2 ms). One possible cause is idle vCPUs waking more slowly than busy ones; this was not investigated.
 
 ## Limitations
 
@@ -150,8 +155,11 @@ Raw: `results/docker/control_*.json` (+ `.raw.csv`). 1000 cycles per run at 100 
 - Everything is loopback on one host. No physical network, so no NIC, wireless or WAN effects. `tc netem` delay is applied to the Linux loopback interface only (Docker); there is no network-delay injection on macOS.
 - The benchmark machine was not idle during the macOS runs (load average is recorded in each result file). Treat absolute numbers as indicative; medians over 3 runs are shown, and raw samples are in the `.raw.csv` files.
 - Transport comparisons use each stack's idiomatic default settings (ZeroMQ REQ/REP and PUSH/PULL, gRPC sync unary and client-streaming, ROS 2 default RMW with reliable QoS). They are not tuned per transport.
+- - `tc netem delay 2ms 1ms` is applied on `lo`, so each direction of a request/response is delayed; the expected loop RTT is about 4 ms, while 6.2-6.3 ms was measured. The extra ~2 ms was not investigated.
 - The ROS 2 echo benchmark spins one node per process with `spin_once` in both languages; rclpy and rclcpp results therefore include executor overhead in each client library.
 - The control loop is a trivial P controller on a simulated plant; it isolates scheduling, serialization and transport costs, not controller compute.
+- Timestamps are assumed to come from the same host clock (`CLOCK_MONOTONIC`). Across hosts a shared time base (PTP/NTP discipline) would be needed; the watchdog's age check would otherwise measure clock offset, not staleness. Commands stamped more than `max_future_ns` ahead are rejected rather than trusted.
+- The runtime is not wired to gRPC or ROS 2; only the demo feeds it (ZeroMQ). `Runtime::stop()` must not be called from the actuator sink callback.
 - Sanitizers: TSan runs the full test-suite. On macOS the ASan target excludes the two protobuf codec tests because Homebrew's libprotobuf is not ASan-built and crashes in `ParseFromArray`.
 
 ## Layout
