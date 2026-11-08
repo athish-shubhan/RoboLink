@@ -47,13 +47,23 @@ static Args parse(int argc, char** argv) {
 }
 
 static void print_client(const Args& a, uint64_t sent, uint64_t received, double dur_s,
-                         const std::vector<int64_t>& rtt, double cpu) {
+                         const std::vector<int64_t>& rtt, double cpu,
+                         const std::vector<int64_t>& lag = {}) {
   std::printf("{\"role\":\"client\",\"transport\":\"%s\",\"lang\":\"cpp\",\"mode\":\"%s\","
               "\"sent\":%llu,\"received\":%llu,\"duration_s\":%.6f,\"cpu_s\":%.6f,\"rtt_ns\":[",
               a.transport.c_str(), a.mode.c_str(), (unsigned long long)sent,
               (unsigned long long)received, dur_s, cpu);
   for (size_t i = 0; i < rtt.size(); ++i) std::printf(i ? ",%lld" : "%lld", (long long)rtt[i]);
-  std::printf("]}\n");
+  std::printf("]");
+  // lag_ns[i] = actual send time minus intended send time. rtt + lag is the
+  // latency a client that wanted to send on schedule would have seen, which
+  // avoids coordinated omission (a slow reply delays later sends in a closed loop).
+  if (!lag.empty()) {
+    std::printf(",\"lag_ns\":[");
+    for (size_t i = 0; i < lag.size(); ++i) std::printf(i ? ",%lld" : "%lld", (long long)lag[i]);
+    std::printf("]");
+  }
+  std::printf("}\n");
 }
 
 static void print_server(uint64_t received, int64_t first, int64_t last, double cpu) {
@@ -73,6 +83,7 @@ static int run_zmq_server(const Args& a) {
   const std::string ep = "tcp://127.0.0.1:" + std::to_string(a.port);
   if (a.mode == "latency") {
     zmq::socket_t s(ctx, zmq::socket_type::rep);
+    s.set(zmq::sockopt::rcvtimeo, 20000);  // a dead client must not hang the harness
     s.bind(ep);
     uint64_t n = 0;
     int64_t first = 0;
@@ -90,6 +101,7 @@ static int run_zmq_server(const Args& a) {
   }
   zmq::socket_t s(ctx, zmq::socket_type::pull);
   s.set(zmq::sockopt::rcvhwm, 100000);
+  s.set(zmq::sockopt::rcvtimeo, 20000);  // a lost End marker must not hang the harness
   s.bind(ep);
   uint64_t n = 0;
   int64_t first = 0, last = 0;
@@ -113,7 +125,7 @@ static int run_zmq_client(const Args& a) {
   if (a.mode == "latency") {
     zmq::socket_t s(ctx, zmq::socket_type::req);
     s.connect(ep);
-    std::vector<int64_t> rtt;
+    std::vector<int64_t> rtt, lag;
     const int total = a.warmup + a.count;
     const int64_t period = static_cast<int64_t>(1e9 / a.rate), t0 = now_ns() + 50'000'000;
     uint64_t recv = 0;
@@ -129,14 +141,14 @@ static int run_zmq_client(const Args& a) {
       (void)s.recv(m, zmq::recv_flags::none);
       const int64_t r = now_ns() - t;
       ++recv;
-      if (i >= a.warmup) rtt.push_back(r);
+      if (i >= a.warmup) { rtt.push_back(r); lag.push_back(t - (t0 + i * period)); }
     }
     Packet e = make_packet(total, Kind::End, 0, 0);
     auto eb = encode(e);
     s.send(zmq::buffer(eb), zmq::send_flags::none);
     zmq::message_t m;
     (void)s.recv(m, zmq::recv_flags::none);
-    print_client(a, total, recv, (now_ns() - t0) / 1e9, rtt, cpu_s() - cpu0);
+    print_client(a, total, recv, (now_ns() - t0) / 1e9, rtt, cpu_s() - cpu0, lag);
     return 0;
   }
   zmq::socket_t s(ctx, zmq::socket_type::push);
@@ -214,7 +226,7 @@ static int run_grpc_client(const Args& a) {
   auto stub = proto::Link::NewStub(ch);
   std::string pay(a.payload, 'x');
   if (a.mode == "latency") {
-    std::vector<int64_t> rtt;
+    std::vector<int64_t> rtt, lag;
     const int total = a.warmup + a.count;
     const int64_t period = static_cast<int64_t>(1e9 / a.rate), t0 = now_ns() + 50'000'000;
     uint64_t recv = 0;
@@ -230,13 +242,13 @@ static int run_grpc_client(const Args& a) {
       auto st = stub->Echo(&cc, req, &resp);
       const int64_t r = now_ns() - t;
       if (st.ok()) ++recv;
-      if (i >= a.warmup) rtt.push_back(r);
+      if (i >= a.warmup) { rtt.push_back(r); lag.push_back(t - (t0 + i * period)); }
     }
     proto::Packet req, resp;
     to_proto(make_packet(total, Kind::End, 0, 0), &req);
     grpc::ClientContext cc;
     stub->Echo(&cc, req, &resp);
-    print_client(a, total, recv, (now_ns() - t0) / 1e9, rtt, cpu_s() - cpu0);
+    print_client(a, total, recv, (now_ns() - t0) / 1e9, rtt, cpu_s() - cpu0, lag);
     return 0;
   }
   grpc::ClientContext cc;

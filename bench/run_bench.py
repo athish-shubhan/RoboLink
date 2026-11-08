@@ -136,6 +136,8 @@ def cmd_transport(a):
                                 ["--role", "client"] + lat_args + common, ready_s=a.ready)
                 st = summarize(c["rtt_ns"])
                 st["cpu_pct_of_one_core"] = 100.0 * (c["cpu_s"] + s["cpu_s"]) / c["duration_s"]
+                if "lag_ns" in c:  # C++ clients: latency measured from the intended send time
+                    st["from_schedule"] = summarize([r + l for r, l in zip(c["rtt_ns"], c["lag_ns"])])
                 st["received"], st["sent"] = c["received"], c["sent"]
                 entry["latency"].append(st)
                 raw += [[name, run, i, v] for i, v in enumerate(c["rtt_ns"])]

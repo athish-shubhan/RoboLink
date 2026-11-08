@@ -1,5 +1,5 @@
-// Terminal dashboard demo: a ZeroMQ command stream runs, stalls, arrives late,
-// then recovers, while the watchdog goes RUN -> HOLD -> STOP -> RUN.
+// Terminal dashboard demo: a ZeroMQ command stream runs, stalls twice (once long
+// enough for STOP, once only for HOLD), then recovers, while the watchdog goes RUN -> HOLD -> STOP -> RUN.
 #include <unistd.h>
 
 #include <atomic>
