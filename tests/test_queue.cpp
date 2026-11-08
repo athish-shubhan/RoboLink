@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <memory>
 #include <numeric>
 #include <thread>
 #include <vector>
@@ -108,4 +109,21 @@ TEST(BoundedQueue, ConcurrentProducersConsumersLoseNothing) {
   for (auto& t : cons) t.join();
   EXPECT_EQ(count.load(), kProducers * kPer);
   EXPECT_EQ(sum.load(), static_cast<long>(kProducers) * kPer * (kPer + 1) / 2);
+}
+
+TEST(BoundedQueue, ReopenAcceptsPushesAgain) {
+  BoundedQueue<int> q(2);
+  q.close();
+  EXPECT_FALSE(q.push_drop_oldest(1));
+  q.reopen();
+  EXPECT_TRUE(q.try_push(1));
+  EXPECT_EQ(*q.pop_for(10ms), 1);
+}
+
+TEST(BoundedQueue, HoldsMoveOnlyTypes) {
+  BoundedQueue<std::unique_ptr<int>> q(2);
+  ASSERT_TRUE(q.try_push(std::make_unique<int>(5)));
+  auto v = q.try_pop();
+  ASSERT_TRUE(v.has_value());
+  EXPECT_EQ(**v, 5);
 }

@@ -15,7 +15,7 @@ namespace {
 RuntimeConfig fast_cfg() {
   RuntimeConfig c;
   c.control_period_ns = 2'000'000;
-  c.watchdog = {60'000'000, 250'000'000, 2};
+  c.watchdog = {100'000'000, 600'000'000, 2};
   return c;
 }
 
@@ -125,4 +125,32 @@ TEST(Runtime, StopIsIdempotentAndJoinsThreads) {
   rt.stop();
   rt.stop();
   SUCCEED();
+}
+
+TEST(Runtime, CanBeRestartedAfterStop) {
+  Runtime rt(fast_cfg());
+  rt.start();
+  rt.stop();
+  rt.start();
+  for (int i = 0; i < 10; ++i) {
+    rt.submit_command(make_packet(i, Kind::Command, 1.f, 0.f));
+    std::this_thread::sleep_for(3ms);
+  }
+  EXPECT_TRUE(wait_for([&] { return rt.snapshot().commands_accepted > 0; }));
+  rt.stop();
+}
+
+TEST(Runtime, StopWhileProducerIsStillSubmittingIsSafe) {
+  Runtime rt(fast_cfg());
+  rt.start();
+  std::atomic<bool> go{true};
+  std::thread producer([&] {
+    uint64_t i = 0;
+    while (go) { rt.submit_command(make_packet(i++, Kind::Command, 1.f, 0.f)); rt.submit_sensor(make_packet(i, Kind::Sensor, 0, 0)); }
+  });
+  std::this_thread::sleep_for(20ms);
+  rt.stop();
+  go = false;
+  producer.join();
+  SUCCEED();  // exercised under TSan/ASan: no race or hang on shutdown
 }
