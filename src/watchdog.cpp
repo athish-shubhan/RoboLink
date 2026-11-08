@@ -21,6 +21,7 @@ void Watchdog::set(State s) {
 bool Watchdog::on_command(const Packet& p, int64_t now) {
   const int64_t age = p.age_ns(now);
   if (age >= cfg_.stop_ns) { ++rejected_stale_; fresh_streak_ = 0; return false; }
+  if (age < -cfg_.max_future_ns) { ++rejected_future_; return false; }
   if (have_cmd_ && p.stamp_ns <= last_stamp_) { ++rejected_order_; return false; }
   have_cmd_ = true;
   last_stamp_ = p.stamp_ns;
@@ -31,7 +32,7 @@ bool Watchdog::on_command(const Packet& p, int64_t now) {
 
 State Watchdog::evaluate(int64_t now) {
   if (!have_cmd_) { return state_; }  // stays HOLD until the first command
-  const int64_t age = now - last_stamp_;
+  const int64_t age = age_between(now, last_stamp_);
   if (age >= cfg_.stop_ns) {
     set(State::Stop);
     fresh_streak_ = 0;

@@ -54,6 +54,8 @@ class Runtime {
   Runtime& operator=(const Runtime&) = delete;
 
   void start();
+  // Joins both threads. Must not be called from the sink callback (the control
+  // thread would join itself). Safe to call start() again afterwards.
   void stop();
 
   void submit_command(Packet p) { cmd_q_.push_drop_oldest(std::move(p)); }

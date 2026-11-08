@@ -95,3 +95,35 @@ TEST(Watchdog, StateNames) {
   EXPECT_STREQ(to_string(State::Hold), "HOLD");
   EXPECT_STREQ(to_string(State::Stop), "STOP");
 }
+
+TEST(Watchdog, RejectsFutureStampedCommandsInsteadOfLockingOutGenuineOnes) {
+  Watchdog w(cfg());
+  // A command stamped an hour ahead would otherwise become "newest" and make
+  // every real command look out-of-order.
+  EXPECT_FALSE(w.on_command(cmd(1, 3'600'000 * ms), 10 * ms));
+  EXPECT_EQ(w.rejected_future(), 1u);
+  EXPECT_TRUE(w.on_command(cmd(2, 10 * ms), 11 * ms));
+  EXPECT_EQ(w.state(), State::Run);
+}
+
+TEST(Watchdog, SmallClockSkewIntoTheFutureIsTolerated) {
+  Watchdog w(cfg());
+  EXPECT_TRUE(w.on_command(cmd(1, 60 * ms), 10 * ms));  // 50 ms ahead < 100 ms allowance
+}
+
+TEST(Watchdog, ExtremeTimestampsDoNotOverflow) {
+  Watchdog w(cfg());
+  EXPECT_FALSE(w.on_command(cmd(1, INT64_MIN), 5 * ms));  // age saturates -> stale
+  EXPECT_EQ(w.rejected_stale(), 1u);
+  EXPECT_FALSE(w.on_command(cmd(2, INT64_MAX), 5 * ms));  // far future
+  EXPECT_EQ(w.rejected_future(), 1u);
+  EXPECT_EQ(cmd(3, INT64_MIN).age_ns(5 * ms), INT64_MAX);
+  EXPECT_EQ(cmd(3, INT64_MAX).age_ns(-5 * ms), INT64_MIN);
+}
+
+TEST(Watchdog, EvaluateIsStableAfterStopWithoutNewCommands) {
+  Watchdog w(cfg());
+  w.on_command(cmd(1, 0), 0);
+  for (int t = 1000; t < 5000; t += 100) EXPECT_EQ(w.evaluate(t * ms), State::Stop);
+  EXPECT_EQ(w.transitions_to_stop(), 1u);
+}

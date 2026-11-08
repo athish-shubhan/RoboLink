@@ -58,6 +58,9 @@ class BoundedQueue {
     cv_.notify_all();
   }
 
+  // Undo close(). Only call while no consumer is waiting on a closed queue.
+  void reopen() { std::lock_guard<std::mutex> l(m_); closed_ = false; }
+
   std::size_t size() const { std::lock_guard<std::mutex> l(m_); return q_.size(); }
   std::size_t capacity() const { return capacity_; }
   std::size_t dropped() const { std::lock_guard<std::mutex> l(m_); return dropped_; }

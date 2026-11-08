@@ -14,6 +14,13 @@ inline int64_t now_ns() {
   return static_cast<int64_t>(ts.tv_sec) * 1'000'000'000LL + ts.tv_nsec;
 }
 
+// now - stamp, saturating at the int64 limits instead of overflowing.
+inline int64_t age_between(int64_t now, int64_t stamp) {
+  int64_t age;
+  if (__builtin_sub_overflow(now, stamp, &age)) return stamp < 0 ? INT64_MAX : INT64_MIN;
+  return age;
+}
+
 enum class Kind : uint32_t { Command = 0, Sensor = 1, End = 2 };
 
 struct Packet {
@@ -25,7 +32,9 @@ struct Packet {
   std::string payload;
 
   // Age of the packet relative to `now` (negative if stamped in the future).
-  int64_t age_ns(int64_t now) const { return now - stamp_ns; }
+  // Saturates instead of overflowing: stamp_ns arrives from the network, so a
+  // hostile or corrupt value such as INT64_MIN must not trigger signed overflow.
+  int64_t age_ns(int64_t now) const { return age_between(now, stamp_ns); }
 };
 
 inline Packet make_packet(uint64_t seq, Kind kind, float linear, float angular,

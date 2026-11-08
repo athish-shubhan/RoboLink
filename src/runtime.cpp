@@ -15,6 +15,10 @@ Runtime::~Runtime() { stop(); }
 
 void Runtime::start() {
   if (running_.exchange(true)) return;
+  // A previous stop() closed the queues; reopen them or the loops would spin
+  // on an always-ready closed queue and reject every submission.
+  cmd_q_.reopen();
+  sensor_q_.reopen();
   control_thread_ = std::thread([this] { control_loop(); });
   sensor_thread_ = std::thread([this] { sensor_loop(); });
 }
